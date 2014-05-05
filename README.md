@@ -1,7 +1,7 @@
 grandcentralstation
 ===================
 
-static file server for google app engine that serves from of google cloud storage, bypassing the "Make Public" checkbox feature
+static file server for google app engine that serves from of google cloud storage, bypassing the "Make Public" checkbox feature. Already supports dynamic image resizing (server side thumbnail generation)
 
 ##Name Meaning
 GrandCentralStation is a backronym on the initials of Google Cloud Storage.
