@@ -6,7 +6,7 @@ static file server for google app engine that serves from of google cloud storag
 ## Name Meaning ##
 GrandCentralStation is a backronym on the initials of Google Cloud Storage.
 
-![https://github.com/jtnimoy/grandcentralstation/blob/master/data/gcs-logo.jpg]
+![grandcentralstation logo](https://github.com/jtnimoy/grandcentralstation/blob/master/data/gcs-logo.jpg)
 
 ## Project Goals ##
 Maintain a lightweight, static file server that provides more flexible features beyond the simple "make public" checkbox currently found in Google Cloud Storage. To add some popular features from more robust web servers like Apache and nginx, approaching  a comfortable middle ground.
