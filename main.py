@@ -43,16 +43,7 @@ gcs.set_default_retry_params(my_default_retry_params)
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        # TODO:
-        # + separate the cdn image resize query beginning with equals and redirect it to cdn
-        
-        #self.response.write( self.request.path + '\n\n' )
-        #result = re.match( '^\w+?\s(\w+?)+?\s.+$' , )
-        #self.response.write( result.groups  )
-        
-        bucket_name = os.environ.get('BUCKET_NAME' ,
-                                     app_identity.get_default_gcs_bucket_name() )
-
+        bucket_name = os.environ.get('BUCKET_NAME' , app_identity.get_default_gcs_bucket_name() )
         decodedPath = urllib.unquote(self.request.path)
 
         # split out the image thumbnail command
