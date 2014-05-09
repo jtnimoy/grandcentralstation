@@ -28,6 +28,8 @@ from google.appengine.api import urlfetch
 from google.appengine.api import app_identity
 from google.appengine.api import images
 from google.appengine.ext import blobstore
+from google.appengine.ext import db
+from google.appengine.api import namespace_manager
 import mimetypes
 import urllib
 import json
@@ -41,16 +43,32 @@ gcs.set_default_retry_params(my_default_retry_params)
 
 
 
+
+
+namespaceStack = []
+def pushNamespace():
+    namespaceStack.append(namespace_manager.get_namespace() )
+
+def popNamespace():
+    namespace_manager.set_namespace( namespaceStack.pop() )
+
+    
 class MainHandler(webapp2.RequestHandler):
 
     def serveProxyCached(self , url):
-        gcs.stat(url)
         #does the url not exist in the bucket?
-        #then download the data and store it into the bucket.
-        
-        #serve that file.
-        
-        pass
+        try:
+            gcs.stat(url)
+        except NotFoundError:
+            #download the data and store it into the bucket.
+            result = urlfetch.fetch(url)
+            if result.status_code == 200:
+                #todo: store it
+                pass
+            else:
+                return webapp2.abort(510)
+            
+        #todo: serve that file.
     
     def get(self):
         bucket_name = os.environ.get('BUCKET_NAME' , app_identity.get_default_gcs_bucket_name() )
@@ -95,6 +113,10 @@ class MainHandler(webapp2.RequestHandler):
                 img = images.Image(filename=filename)
                 blob_key = blobstore.create_gs_key(filename)
 
+                #self.response.headers['Content-Type'] =  'text/plain'
+                #self.response.write(blob_key)
+                #return
+
                 resizeCommand = path[1]
                 if(resizeCommand==None):
                     resizeCommand = ''
@@ -113,26 +135,58 @@ class MainHandler(webapp2.RequestHandler):
 
 class TestPopulateHandler(webapp2.RequestHandler):
     def get(self):
-        #set up test bucket data
+    
         filenames = [
             {'name':'data/a.jpg','mime':'image/jpeg'},
             {'name':'data/index.html','mime':'text/html'},
             {'name':'data/a b/index.html','mime':'text/html'},
             ]
         if os.environ.get('SERVER_SOFTWARE').startswith('Development'):
+            #set up test bucket data
             for file in filenames:
                 data = open(file['name'],'r')
                 gcs_file = gcs.open('/app_default_bucket/' + file['name'],'w',content_type=file['mime'])
                 gcs_file.write(data.read())
                 data.close()
                 gcs_file.close()
+
+            #set up settings in datastore
+            pushNamespace()
+            namespace_manager.set_namespace('grandcentralstation')
+            s = Setting(key_name='thumbnail_bucket')
+            s.value = 'my-awesome-bucket-name'
+            s.put()
+            popNamespace()
+            
             webapp2.abort(201)
         else:
             webapp2.abort(403)
 
+            
+class Setting(db.Model):
+    value = db.StringProperty()
+
+    
+class TestDatastoreHandler(webapp2.RequestHandler):
+    def get(self):
+        pushNamespace()
+        namespace_manager.set_namespace('grandcentralstation')
+        q = Setting.get_by_key_name('thumbnail_bucket')
+        k = q.key()
+        self.response.headers['Content-Type'] =  'text/plain'
+    
+        self.response.write( '  id: ' + str(k.id()) + '\n' )
+        self.response.write( '  ns: ' + k.namespace() + '\n' )
+        self.response.write( 'name: ' + k.name() + '\n' )
+        self.response.write( 'kind: ' + k.kind() + '\n' )
+        self.response.write( ' app: ' + k.app() + '\n' )
+            
+        popNamespace()
+
 
 app = webapp2.WSGIApplication([
     ('/test/populate' , TestPopulateHandler),
+    ('/test/datastore' , TestDatastoreHandler),
     ('/.*', MainHandler),
 
 ], debug=True)
