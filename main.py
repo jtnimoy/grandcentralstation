@@ -42,6 +42,16 @@ gcs.set_default_retry_params(my_default_retry_params)
 
 
 class MainHandler(webapp2.RequestHandler):
+
+    def serveProxyCached(self , url):
+        gcs.stat(url)
+        #does the url not exist in the bucket?
+        #then download the data and store it into the bucket.
+        
+        #serve that file.
+        
+        pass
+    
     def get(self):
         bucket_name = os.environ.get('BUCKET_NAME' , app_identity.get_default_gcs_bucket_name() )
         decodedPath = urllib.unquote(self.request.path)
@@ -88,7 +98,8 @@ class MainHandler(webapp2.RequestHandler):
                 resizeCommand = path[1]
                 if(resizeCommand==None):
                     resizeCommand = ''
-                    
+
+                # TODO: server proxy cached data from this url rather than redirecting.    
                 return self.redirect( images.get_serving_url(blob_key) + resizeCommand )
                 
             else:
