@@ -20,7 +20,6 @@ import sys
 sys.path.insert(0,'lib')
 
 import logging
-import os
 import cloudstorage as gcs
 import webapp2
 import re
@@ -28,11 +27,13 @@ from google.appengine.api import urlfetch
 from google.appengine.api import app_identity
 from google.appengine.api import images
 from google.appengine.ext import blobstore
-from google.appengine.ext import db
-from google.appengine.api import namespace_manager
 import mimetypes
 import urllib
 import json
+import os
+
+import grand
+import test
 
 # Retry can help overcome transient urlfetch or GCS issues, such as timeouts.
 my_default_retry_params = gcs.RetryParams(initial_delay=0.2,
@@ -42,15 +43,6 @@ my_default_retry_params = gcs.RetryParams(initial_delay=0.2,
 gcs.set_default_retry_params(my_default_retry_params)
 
 
-
-
-
-namespaceStack = []
-def pushNamespace():
-    namespaceStack.append(namespace_manager.get_namespace() )
-
-def popNamespace():
-    namespace_manager.set_namespace( namespaceStack.pop() )
 
     
 class MainHandler(webapp2.RequestHandler):
@@ -131,62 +123,10 @@ class MainHandler(webapp2.RequestHandler):
         except gcs.NotFoundError:
             return webapp2.abort(404)
             
-            
-
-class TestPopulateHandler(webapp2.RequestHandler):
-    def get(self):
-    
-        filenames = [
-            {'name':'data/a.jpg','mime':'image/jpeg'},
-            {'name':'data/index.html','mime':'text/html'},
-            {'name':'data/a b/index.html','mime':'text/html'},
-            ]
-        if os.environ.get('SERVER_SOFTWARE').startswith('Development'):
-            #set up test bucket data
-            for file in filenames:
-                data = open(file['name'],'r')
-                gcs_file = gcs.open('/app_default_bucket/' + file['name'],'w',content_type=file['mime'])
-                gcs_file.write(data.read())
-                data.close()
-                gcs_file.close()
-
-            #set up settings in datastore
-            pushNamespace()
-            namespace_manager.set_namespace('grandcentralstation')
-            s = Setting(key_name='thumbnail_bucket')
-            s.value = 'my-awesome-bucket-name'
-            s.put()
-            popNamespace()
-            
-            webapp2.abort(201)
-        else:
-            webapp2.abort(403)
-
-            
-class Setting(db.Model):
-    value = db.StringProperty()
-
-    
-class TestDatastoreHandler(webapp2.RequestHandler):
-    def get(self):
-        pushNamespace()
-        namespace_manager.set_namespace('grandcentralstation')
-        q = Setting.get_by_key_name('thumbnail_bucket')
-        k = q.key()
-        self.response.headers['Content-Type'] =  'text/plain'
-    
-        self.response.write( '  id: ' + str(k.id()) + '\n' )
-        self.response.write( '  ns: ' + k.namespace() + '\n' )
-        self.response.write( 'name: ' + k.name() + '\n' )
-        self.response.write( 'kind: ' + k.kind() + '\n' )
-        self.response.write( ' app: ' + k.app() + '\n' )
-            
-        popNamespace()
 
 
 app = webapp2.WSGIApplication([
-    ('/test/populate' , TestPopulateHandler),
-    ('/test/datastore' , TestDatastoreHandler),
+    ('/grand/test' , test.MainHandler),
     ('/.*', MainHandler),
 
 ], debug=True)
