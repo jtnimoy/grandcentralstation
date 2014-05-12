@@ -92,7 +92,10 @@ class MainHandler(webapp2.RequestHandler , unittest.TestCase):
         self.assertTrue( 0 < len(result.content) )
         
         self.p('\nattempting to download image with invalid resizing argument')
-        result = urlfetch.fetch('http://%s:%s/data/a.jpg=s49-fg' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
+        result = urlfetch.fetch('http://%s:%s/data/a.jpg=s32' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
         self.assertEqual(result.status_code , 200)
         self.assertTrue( 0 < len(result.content) )
+        self.p(str(result.headers))
+        # WHERE IS THE REDIRECT HEADER?
+        
         
