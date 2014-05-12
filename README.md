@@ -22,7 +22,12 @@ I needed more control than turnkey solutions would provide when migrating my 16 
 
 + Make sure your GAE project has Google Cloud Storage service added, and upload some files to it.
 
-+ Download and install the [Cloud Storage Client Library](https://developers.google.com/appengine/docs/python/googlecloudstorageclient/download) into your project.
++ Download and install the [Cloud Storage Client Library](https://developers.google.com/appengine/docs/python/googlecloudstorageclient/download) into your project directory under lib.
+
+
+```
+pip install GoogleAppEngineCloudStorageClient -t ./lib
+```
 
 + grandcentralstation will use your default bucket name (the one created for you which is the same name as your project). Deploy the app to appspot, and insure that you are able to access one of your bucket files at that domain. For example, if the bucket file is `gs://cdn.jtn.im/poodles/duncan.jpg` then the URL will be `http://myproject.appspot.com/poodles/duncan.jpg`.
 
