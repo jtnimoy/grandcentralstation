@@ -33,3 +33,5 @@ pip install GoogleAppEngineCloudStorageClient -t ./lib
 
 + Images have a dynamic resizing feature in accordance with the app engine image api. Append `=s100` to the end of an image URL to see the longest length resized to 100. To enable cropping and have the image returned as a 100x100 square, append `-s100-c`.
 
++ run the app and visit `http://localhost:8080/grand/test` Domains and port numbers may vary. The test link will install the appropriate datastore objects, and see that the rest of the system is working.
+
