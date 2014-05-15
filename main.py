@@ -108,11 +108,11 @@ class MainHandler(webapp2.RequestHandler):
                 #self.response.headers['Content-Type'] =  'text/plain'
                 #self.response.write(blob_key)
                 #return
-
+                
                 resizeCommand = path[1]
                 if(resizeCommand==None):
                     resizeCommand = ''
-
+                
                 # TODO: server proxy cached data from this url rather than redirecting.    
                 return self.redirect( images.get_serving_url(blob_key) + resizeCommand )
                 
@@ -124,10 +124,23 @@ class MainHandler(webapp2.RequestHandler):
             return webapp2.abort(404)
             
 
+class RootHandler(webapp2.RequestHandler):
+    def get(self):
+        if os.environ.get('SERVER_SOFTWARE').startswith('Development'):
+            self.response.write('''<h1>It works!</h1>
+<div><a href="http://github.com/jtnimoy/grandcentralstation">GrandCentralStation</a>,
+a static  media server for GoogleCloudStorage.</div>
+<a href="grand/test">Unit test me.</a>
+            ''')
+            
+            
+
+
 
 app = webapp2.WSGIApplication([
     ('/grand/test' , test.MainHandler),
-    ('/.*', MainHandler),
+    ('/.+', MainHandler),
+    ('/', RootHandler),
 
 ], debug=True)
 

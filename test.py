@@ -23,6 +23,8 @@ import grand
 import unittest
 from google.appengine.api import app_identity
 from google.appengine.api import urlfetch 
+import re
+import json
     
 class MainHandler(webapp2.RequestHandler , unittest.TestCase):
 
@@ -81,21 +83,30 @@ class MainHandler(webapp2.RequestHandler , unittest.TestCase):
         self.addFiles()
 
         self.p('\nattempting to download image')
-        result = urlfetch.fetch('http://%s:%s/data/a.jpg' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
+
+
+        result = urlfetch.fetch('http://cdn.jtn.im/000017.jpg=s32')
+        self.response.write(  [ result.status_code , 
+                                result.headers , 
+                                result.content ] )
+
+
+        #result = urlfetch.fetch('http://%s:%s/000017.jpg' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
+
+        #self.assertEqual(result.status_code , 200)
+        #self.assertTrue( 0 < len(result.content) )
         
-        self.assertEqual(result.status_code , 200)
-        self.assertTrue( 0 < len(result.content) )
+        #self.p('\nattempting to download image with resizing argument')
+        #result = urlfetch.fetch('http://%s:%s/data/a.jpg=s32' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
+        #self.assertEqual(result.status_code , 200)
+        #self.assertTrue( 0 < len(result.content) )
         
-        self.p('\nattempting to download image with resizing argument')
-        result = urlfetch.fetch('http://%s:%s/data/a.jpg=s32' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
-        self.assertEqual(result.status_code , 200)
-        self.assertTrue( 0 < len(result.content) )
-        
-        self.p('\nattempting to download image with invalid resizing argument')
-        result = urlfetch.fetch('http://%s:%s/data/a.jpg=s32' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
-        self.assertEqual(result.status_code , 200)
-        self.assertTrue( 0 < len(result.content) )
-        self.p(str(result.headers))
+        #self.p('\nattempting to download image with invalid resizing argument')
+        #response = urlfetch.fetch('http://%s:%s/data/a.jpg=s32' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
+        #self.assertEqual(response.status_code , 200)
+        #self.assertTrue( 0 < len(result.content) )
+        #self.p( json.dumps(dir(result)) )
+        #self.response.write(response )
         # WHERE IS THE REDIRECT HEADER?
         
         
