@@ -22,9 +22,16 @@ I needed more control than turnkey solutions would provide when migrating my 16 
 
 + Make sure your GAE project has Google Cloud Storage service added, and upload some files to it.
 
-+ Download and install the [Cloud Storage Client Library](https://developers.google.com/appengine/docs/python/googlecloudstorageclient/download) into your project.
++ Download and install the [Cloud Storage Client Library](https://developers.google.com/appengine/docs/python/googlecloudstorageclient/download) into your project directory under lib.
+
+
+```
+pip install GoogleAppEngineCloudStorageClient -t ./lib
+```
 
 + grandcentralstation will use your default bucket name (the one created for you which is the same name as your project). Deploy the app to appspot, and insure that you are able to access one of your bucket files at that domain. For example, if the bucket file is `gs://cdn.jtn.im/poodles/duncan.jpg` then the URL will be `http://myproject.appspot.com/poodles/duncan.jpg`.
 
 + Images have a dynamic resizing feature in accordance with the app engine image api. Append `=s100` to the end of an image URL to see the longest length resized to 100. To enable cropping and have the image returned as a 100x100 square, append `-s100-c`.
+
++ run the app and visit `http://localhost:8080/grand/test` Domains and port numbers may vary. The test link will install the appropriate datastore objects, and see that the rest of the system is working.
 
