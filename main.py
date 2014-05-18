@@ -127,11 +127,7 @@ class MainHandler(webapp2.RequestHandler):
 class RootHandler(webapp2.RequestHandler):
     def get(self):
         if os.environ.get('SERVER_SOFTWARE').startswith('Development'):
-            self.response.write('''<h1>It works!</h1>
-<div><a href="http://github.com/jtnimoy/grandcentralstation">GrandCentralStation</a>,
-a static  media server for GoogleCloudStorage.</div>
-<a href="grand/test">Unit test me.</a>
-            ''')
+            self.response.write('''very interesting''')
             
             
 

@@ -25,6 +25,7 @@ from google.appengine.api import app_identity
 from google.appengine.api import urlfetch 
 import re
 import json
+import urllib2
     
 class MainHandler(webapp2.RequestHandler , unittest.TestCase):
 
@@ -68,10 +69,10 @@ class MainHandler(webapp2.RequestHandler , unittest.TestCase):
         grand.config['www_bucket'] = os.environ.get('BUCKET_NAME' , app_identity.get_default_gcs_bucket_name() )
         
         self.p('\nTesting config system.')
-        self.p( '\t.thumbnail_bucket exists: ' + str( grand.config.exists('non_existent_key') ) )
+        self.p( '\t.thumbnail_bucket exists: ' + str( grand.config.has_key('non_existent_key') ) )
         self.p( "\t.thumbnail_bucket: " + grand.config['thumbnail_bucket'] )
 
-        self.assertFalse( grand.config.exists('non_existent_key') )
+        self.assertFalse( grand.config.has_key('non_existent_key') )
         try:
             self.p( '\t.non_existent_key: ' + grand.config['non_existent_key'] )
             self.p('\tKeyError not raised.')
@@ -85,11 +86,19 @@ class MainHandler(webapp2.RequestHandler , unittest.TestCase):
         self.p('\nattempting to download image')
 
 
-        result = urlfetch.fetch('http://cdn.jtn.im/000017.jpg=s32')
-        self.response.write(  [ result.status_code , 
-                                result.headers , 
-                                result.content ] )
-
+        result = urlfetch.fetch(
+            url='http://cdn.jtn.im:80/000017.jpg=s32',
+            deadline=60,
+            follow_redirects=False,
+            
+        )
+        self.response.write(result.status_code)
+        self.response.write('\n\n')
+        self.response.write(result.headers)
+        self.response.write('\n\n')
+        self.response.write(result.content[:10])
+        self.response.write('\n\n')
+        
 
         #result = urlfetch.fetch('http://%s:%s/000017.jpg' % (os.environ["SERVER_NAME"],os.environ["SERVER_PORT"]))
 

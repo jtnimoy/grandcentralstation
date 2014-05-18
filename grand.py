@@ -50,7 +50,7 @@ class Setting(db.Model):
 
 class ConfigurationSimplifier:
 
-    def exists(self,key):
+    def has_key(self,key):
         
         try:
             v = self[key]
