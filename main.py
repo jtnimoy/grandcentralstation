@@ -63,7 +63,15 @@ class MainHandler(webapp2.RequestHandler):
         #todo: serve that file.
     
     def get(self):
-        bucket_name = os.environ.get('BUCKET_NAME' , app_identity.get_default_gcs_bucket_name() )
+
+        #setup check
+        try:
+            bucket_name = grand.config['www_bucket']
+        except KeyError:
+            return self.redirect('/grand/setup')
+
+        #bucket_name = app_identity.get_default_gcs_bucket_name()
+        
         decodedPath = urllib.unquote(self.request.path)
 
         # split out the image thumbnail command
@@ -98,7 +106,7 @@ class MainHandler(webapp2.RequestHandler):
             self.response.headers['Content-Length'] =  str(stat.st_size)
             self.response.headers['Cache-Control'] = 'public, max-age=31536000'
             
-            if( stat.content_type.startswith('image')):
+            if( stat.content_type.startswith('image') and grand.config['thumbnail_enabled'] == 'True' ):
                 
                 #use image api instead of serving like text
                 filename = '/gs'+filename
@@ -114,8 +122,22 @@ class MainHandler(webapp2.RequestHandler):
                     resizeCommand = ''
                 
                 # TODO: server proxy cached data from this url rather than redirecting.    
-                return self.redirect( images.get_serving_url(blob_key) + resizeCommand )
+ 
+                # this might actually be sufficient since it's doing exactly what it's supposed to.
+                return self.redirect( images.get_serving_url(blob_key) + resizeCommand ) 
                 
+
+                #result = urlfetch.fetch(
+                #    url= images.get_serving_url(blob_key) + resizeCommand ,
+                #    deadline=60*10, #seconds
+                #    follow_redirects=True,
+                #)
+                
+                #todo: store result.content into datastore Thumbnail object.
+                #result.content
+                #todo: serve that file
+
+
             else:
                 self.response.write(gcs_file.read())
             gcs_file.close()
@@ -124,19 +146,10 @@ class MainHandler(webapp2.RequestHandler):
             return webapp2.abort(404)
             
 
-class RootHandler(webapp2.RequestHandler):
-    def get(self):
-        if os.environ.get('SERVER_SOFTWARE').startswith('Development'):
-            self.response.write('''very interesting''')
-            
-            
-
-
-
 app = webapp2.WSGIApplication([
     ('/grand/test' , test.MainHandler),
+    ('/grand/setup', grand.SetupHandler),
     ('/.+', MainHandler),
-    ('/', RootHandler),
 
 ], debug=True)
 

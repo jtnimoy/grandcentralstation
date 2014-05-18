@@ -32,27 +32,9 @@ class MainHandler(webapp2.RequestHandler , unittest.TestCase):
     def p(self,s):
         self.response.write(s+'\n')
         
-    def addFiles(self):
-        bucket_name = os.environ.get('BUCKET_NAME' , app_identity.get_default_gcs_bucket_name() )
-        
-        filenames = [
-            {'name':'data/a.jpg','mime':'image/jpeg'},
-            {'name':'data/index.html','mime':'text/html'},
-            {'name':'data/a b/index.html','mime':'text/html'},
-            ]
-        if os.environ.get('SERVER_SOFTWARE').startswith('Development'):
-            self.p('\nDev~ detected. Adding files to bucket.')
-            #set up test bucket data    
-            for file in filenames:
-                data = open(file['name'],'r')
-                gcs_file = gcs.open( '/%s/%s' % (bucket_name,file['name']) ,'w',content_type=file['mime'])
-                gcs_file.write(data.read())
-                data.close()
-                gcs_file.close()
-                self.p('\tAdded file \'%s\'.' % data.name)
-
-            self.p('\nTrying to open file from gcs bucket.')
-            gsc_file = gcs.open( '/%s/%s' % (bucket_name,file['name']) , 'r')
+    def testFiles(self):
+            self.p('\nTrying to open cloud storage file data/a.jpg')
+            gsc_file = gcs.open( '/%s/%s' % ( grand.config['www_bucket'] , 'data/a.jpg'  ) , 'r')
             self.p('\tFile opened for reading.')
             gsc_file.close()
 
@@ -61,16 +43,13 @@ class MainHandler(webapp2.RequestHandler , unittest.TestCase):
 
         self.response.headers['Content-Type'] =  'text/plain'
 
-                
         # config template
-        self.p('\nCreating config in datastore.')
-        
-        grand.config['thumbnail_bucket'] = '/gs/thumbnails'
-        grand.config['www_bucket'] = os.environ.get('BUCKET_NAME' , app_identity.get_default_gcs_bucket_name() )
+        #self.p('\nCreating config in datastore.')
         
         self.p('\nTesting config system.')
         self.p( '\t.thumbnail_bucket exists: ' + str( grand.config.has_key('non_existent_key') ) )
         self.p( "\t.thumbnail_bucket: " + grand.config['thumbnail_bucket'] )
+        self.p( "\t.thumbnail_enabled: " + grand.config['thumbnail_enabled'] )
 
         self.assertFalse( grand.config.has_key('non_existent_key') )
         try:
@@ -81,22 +60,22 @@ class MainHandler(webapp2.RequestHandler , unittest.TestCase):
         finally:
             self.p('\tSuccess.')
 
-        self.addFiles()
+        self.testFiles()
 
         self.p('\nattempting to download image')
 
 
         result = urlfetch.fetch(
-            url='http://cdn.jtn.im:80/000017.jpg=s32',
-            deadline=60,
-            follow_redirects=False,
-            
+            url='http://cdn.jtn.im/000017.jpg=s8',
+            deadline=120,
+            follow_redirects=True,
         )
+        
         self.response.write(result.status_code)
         self.response.write('\n\n')
         self.response.write(result.headers)
         self.response.write('\n\n')
-        self.response.write(result.content[:10])
+        self.response.write( len(result.content) )
         self.response.write('\n\n')
         
 
