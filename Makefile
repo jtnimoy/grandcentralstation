@@ -4,10 +4,10 @@ LOCAL_PORT = 8080
 
 
 local_server:
-	$(APPENGINE)/dev_appserver.py .
+	dev_appserver.py .
 
 deploy:
-	$(APPENGINE)/appcfg.py update .
+	gcloud app deploy app.yaml index.yaml
 
 test_remote:
 	curl http://$(SERVERNAME)/grand/test
