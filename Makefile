@@ -15,3 +15,5 @@ test_remote:
 test_local:
 	curl http://localhost:$(LOCAL_PORT)/grand/test
 
+log_remote:
+	gcloud app logs tail -s default

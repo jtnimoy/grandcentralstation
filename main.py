@@ -37,8 +37,74 @@ import test
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.write("hi there")
+
+        filename = '/' + bucket_name + path[0]
+
+        # fix for indices.
+        if path[0][-1] == '/':
+            filename += 'index.html'
         
+        #read file
+        try:
+            
+            #first error might be directory, so provide a second try
+            try:
+                gcs_file = gcs.open(filename)
+            except gcs.NotFoundError:
+                filename += '/index.html'
+                gcs.stat(filename)
+                # trailing slash redirect happens if stat is success
+                return self.redirect(urllib.quote( path[0] + '/'), code=301)
+                
+            stat = gcs.stat(filename)
+
+            # TODO: saw an html file served as plain. perhaps google's mime interp is unconventional
+            self.response.headers['Content-Type'] =  stat.content_type 
+            self.response.headers['Content-Length'] =  str(stat.st_size)
+            self.response.headers['Cache-Control'] = 'no-cache'
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
+            self.response.headers['Vary'] = 'Origin'
+            
+            if( stat.content_type.startswith('image') and grand.config['thumbnail_enabled'] == 'True' ):
+                
+                #use image api instead of serving like text
+                filename = '/gs'+filename
+                img = images.Image(filename=filename)
+                blob_key = blobstore.create_gs_key(filename)
+
+                #self.response.headers['Content-Type'] =  'text/plain'
+                #self.response.write(blob_key)
+                #return
+                
+                resizeCommand = path[1]
+                if(resizeCommand==None):
+                    resizeCommand = ''
+                
+                # TODO: server proxy cached data from this url rather than redirecting.    
+ 
+                # this might actually be sufficient since it's doing exactly what it's supposed to.
+                return self.redirect( images.get_serving_url(blob_key) + resizeCommand, self.response ) 
+            
+            
+                #result = urlfetch.fetch(
+                #    url= images.get_serving_url(blob_key) + resizeCommand ,
+                #    deadline=60*10, #seconds
+                #    follow_redirects=True,
+                #)
+                
+                #todo: store result.content into datastore Thumbnail object.
+                #result.content
+                #todo: serve that file
+
+
+            else:
+                self.response.write(gcs_file.read())
+            gcs_file.close()
+
+        except gcs.NotFoundError:
+            return webapp2.abort(404)
+            
+
 app = webapp2.WSGIApplication([
     ('/grand/test' , test.MainHandler),
     ('/.+', MainHandler),
