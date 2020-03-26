@@ -104,7 +104,9 @@ class MainHandler(webapp2.RequestHandler):
             # TODO: saw an html file served as plain. perhaps google's mime interp is unconventional
             self.response.headers['Content-Type'] =  stat.content_type 
             self.response.headers['Content-Length'] =  str(stat.st_size)
-            self.response.headers['Cache-Control'] = 'public, max-age=31536000'
+            self.response.headers['Cache-Control'] = 'no-cache'
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
+            self.response.headers['Vary'] = 'Origin'
             
             if( stat.content_type.startswith('image') and grand.config['thumbnail_enabled'] == 'True' ):
                 
@@ -124,9 +126,9 @@ class MainHandler(webapp2.RequestHandler):
                 # TODO: server proxy cached data from this url rather than redirecting.    
  
                 # this might actually be sufficient since it's doing exactly what it's supposed to.
-                return self.redirect( images.get_serving_url(blob_key) + resizeCommand ) 
-                
-
+                return self.redirect( images.get_serving_url(blob_key) + resizeCommand, self.response ) 
+            
+            
                 #result = urlfetch.fetch(
                 #    url= images.get_serving_url(blob_key) + resizeCommand ,
                 #    deadline=60*10, #seconds
