@@ -1,2 +1,2 @@
-GoogleAppEngineCloudStorageClient
-webapp2
+google-cloud-storage
+flask

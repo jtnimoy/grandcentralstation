@@ -15,12 +15,10 @@
 # limitations under the License.
 #
 
-from google.appengine.api import app_identity
-from google.appengine.api import namespace_manager
-from google.appengine.ext import db
+from google.cloud import storage
+client = storage.Client(__name__)
+
 import os
-import webapp2
-import cloudstorage as gcs
 
 
 class ns:
@@ -88,7 +86,7 @@ class SetupHandler(webapp2.RequestHandler):
 
         self.response.write('<h1>grandcentralstation</h1>')
 
-        config['www_bucket'] = os.environ.get('BUCKET_NAME' , app_identity.get_default_gcs_bucket_name() )
+        config['www_bucket'] = os.environ.get('BUCKET_NAME' , '' )
         config['thumbnail_enabled'] = 'True'
 
         filenames = [
@@ -102,7 +100,7 @@ class SetupHandler(webapp2.RequestHandler):
             #set up test bucket data    
             for file in filenames:
                 data = open(file['name'],'r')
-                gcs_file = gcs.open( '/%s/%s' % ( config['www_bucket'] ,file['name']) ,'w',content_type=file['mime'])
+                gcs_file = client.open( '/%s/%s' % ( config['www_bucket'] ,file['name']) ,'w',content_type=file['mime'])
                 gcs_file.write(data.read())
                 data.close()
                 gcs_file.close()

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 #
-# Copyright 2007 Google Inc.
 # Copyright 2014 Joshua T. Nimoy
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,101 +12,170 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
+# limitations ODunder the License.
 #
 
 import sys
 sys.path.insert(0,'lib')
 
-import logging
-#import cloudstorage as gcs
-import webapp2
-import re
-from google.appengine.api import urlfetch
-from google.appengine.api import app_identity
-from google.appengine.api import images
-from google.appengine.ext import blobstore
-import mimetypes
-import urllib
-import json
+import flask
 import os
+import urllib
+import re
 
-import grand
-import test
+from google.cloud import storage
+from google.cloud.storage import Blob
 
-class MainHandler(webapp2.RequestHandler):
-    def get(self):
 
-        filename = '/' + bucket_name + path[0]
+app = flask.Flask(__name__)
 
-        # fix for indices.
-        if path[0][-1] == '/':
-            filename += 'index.html'
+    
+@app.route('/')
+def root():
+    config = {}
+    
+    config['www_bucket'] = os.environ.get('BUCKET_NAME' , '' )
+    config['thumbnail_enabled'] = 'True'
+
+
+    #setup check
+    try:
+        bucket_name = config['www_bucket']
+    except KeyError:
+        return "no bucket found"
+
         
-        #read file
+    decodedPath = urllib.parse.unquote(flask.request.path)
+
+    # split out the image thumbnail command
+    matches = re.match( '^(?P<part1>.*?)(?P<part2>=.*?)?$' , decodedPath )
+    path = [
+        matches.group('part1'), #classic url
+        matches.group('part2')  #image resize command, like s=256-c
+    ]
+    
+    filename = '/' + bucket_name + path[0]
+
+    # fix for indices.
+    if path[0][-1] == '/':
+        filename += 'index.html'
+
+    storage_client = storage.Client()
+        
+    #read file
+    try:
+            
+        #first error might be directory, so provide a second try
         try:
-            
-            #first error might be directory, so provide a second try
-            try:
-                gcs_file = gcs.open(filename)
-            except gcs.NotFoundError:
-                filename += '/index.html'
-                gcs.stat(filename)
-                # trailing slash redirect happens if stat is success
-                return self.redirect(urllib.quote( path[0] + '/'), code=301)
+            blob_file = Blob(filename)
+        except:
+            filename += '/index.html'
+            Blob(filename)
+            # trailing slash redirect happens if stat is success
+            return redirect(urllib.parse.quote( path[0] + '/'), code=301)
                 
-            stat = gcs.stat(filename)
+        stat = Blob(filename)
 
-            # TODO: saw an html file served as plain. perhaps google's mime interp is unconventional
-            self.response.headers['Content-Type'] =  stat.content_type 
-            self.response.headers['Content-Length'] =  str(stat.st_size)
-            self.response.headers['Cache-Control'] = 'no-cache'
-            self.response.headers['Access-Control-Allow-Origin'] = '*'
-            self.response.headers['Vary'] = 'Origin'
-            
-            if( stat.content_type.startswith('image') and grand.config['thumbnail_enabled'] == 'True' ):
-                
-                #use image api instead of serving like text
-                filename = '/gs'+filename
-                img = images.Image(filename=filename)
-                blob_key = blobstore.create_gs_key(filename)
 
-                #self.response.headers['Content-Type'] =  'text/plain'
-                #self.response.write(blob_key)
-                #return
+        # TODO: saw an html file served as plain. perhaps google's mime interp is unconventional
+        resp = flask.Response()
+        
+        resp.headers['Content-Type'] =  stat.content_type 
+        resp.headers['Content-Length'] =  str(stat.st_size)
+        resp.headers['Cache-Control'] = 'no-cache'
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Vary'] = 'Origin'
+
+        return resp
+
+        """
+        if( stat.content_type.startswith('image') and config['thumbnail_enabled'] == 'True' ):
                 
-                resizeCommand = path[1]
-                if(resizeCommand==None):
-                    resizeCommand = ''
+            #use image api instead of serving like text
+            filename = '/gs'+filename
+            img = images.Image(filename=filename)
+            blob_key = blobstore.create_gs_key(filename)
+
                 
-                # TODO: server proxy cached data from this url rather than redirecting.    
+            resizeCommand = path[1]
+            if(resizeCommand==None):
+                resizeCommand = ''
+                
+            # TODO: server proxy cached data from this url rather than redirecting.    
  
-                # this might actually be sufficient since it's doing exactly what it's supposed to.
-                return self.redirect( images.get_serving_url(blob_key) + resizeCommand, self.response ) 
+            # this might actually be sufficient since it's doing exactly what it's supposed to.
+            return redirect( images.get_serving_url(blob_key) + resizeCommand, resp ) 
             
             
-                #result = urlfetch.fetch(
-                #    url= images.get_serving_url(blob_key) + resizeCommand ,
-                #    deadline=60*10, #seconds
-                #    follow_redirects=True,
-                #)
-                
-                #todo: store result.content into datastore Thumbnail object.
-                #result.content
-                #todo: serve that file
+        else:
+            resp.headers['body'] = blob_file.read()
+            blob_file.close()
+
+        
+        return resp
+"""
+
+    except:
+        return '',404
+            
 
 
-            else:
-                self.response.write(gcs_file.read())
-            gcs_file.close()
+def MainHandler_get():
+    filename = '/' + bucket_name + path[0]
 
+    # fix for indices.
+    if path[0][-1] == '/':
+        filename += 'index.html'
+        
+    #read file
+    try:
+            
+        #first error might be directory, so provide a second try
+        try:
+            gcs_file = gcs.open(filename)
         except gcs.NotFoundError:
-            return webapp2.abort(404)
+            filename += '/index.html'
+            gcs.stat(filename)
+            # trailing slash redirect happens if stat is success
+            return redirect(urllib.parse.quote( path[0] + '/'), code=301)
+                
+        stat = gcs.stat(filename)
+
+        # TODO: saw an html file served as plain. perhaps google's mime interp is unconventional
+        resp = flask.Response()
+        
+        resp.headers['Content-Type'] =  stat.content_type 
+        resp.headers['Content-Length'] =  str(stat.st_size)
+        resp.headers['Cache-Control'] = 'no-cache'
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Vary'] = 'Origin'
+            
+        #if( stat.content_type.startswith('image') and config['thumbnail_enabled'] == 'True' ):
+        #        
+        #    #use image api instead of serving like text
+        #    filename = '/gs'+filename
+        #    img = images.Image(filename=filename)
+        #    blob_key = blobstore.create_gs_key(filename)
+
+                
+        #    resizeCommand = path[1]
+        #    if(resizeCommand==None):
+        #        resizeCommand = ''
+                
+            # TODO: server proxy cached data from this url rather than redirecting.    
+ 
+            # this might actually be sufficient since it's doing exactly what it's supposed to.
+        #    return redirect( images.get_serving_url(blob_key) + resizeCommand, self.response ) 
+            
+            
+        #else:
+        #    self.response.write(gcs_file.read())
+        #    gcs_file.close()
+
+    except gcs.NotFoundError:
+        return webapp2.abort(404)
             
 
-app = webapp2.WSGIApplication([
-    ('/grand/test' , test.MainHandler),
-    ('/.+', MainHandler),
-
-], debug=True)
-
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=8080, debug=True)
+    

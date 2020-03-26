@@ -1,11 +1,4 @@
 runtime: python37
 
-handlers:
-- url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
-
-
-- url: /.*
-  script: auto
-
+env_variables:
+  BUCKET_NAME: cdn-jtnim

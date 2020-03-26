@@ -14,8 +14,8 @@ deploy:
 test_remote:
 	curl http://$(SERVERNAME)/grand/test
 
-test_local:
-	curl http://localhost:$(LOCAL_PORT)/grand/test
+run_local:
+	python main.py
 
 log_remote:
 	gcloud app logs tail -s default
