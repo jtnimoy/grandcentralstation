@@ -20,7 +20,7 @@ import sys
 sys.path.insert(0,'lib')
 
 import logging
-import cloudstorage as gcs
+#import cloudstorage as gcs
 import webapp2
 import re
 from google.appengine.api import urlfetch
@@ -35,20 +35,9 @@ import os
 import grand
 import test
 
-# Retry can help overcome transient urlfetch or GCS issues, such as timeouts.
-my_default_retry_params = gcs.RetryParams(initial_delay=0.2,
-                                          max_delay=5.0,
-                                          backoff_factor=2,
-                                          max_retry_period=15)
-gcs.set_default_retry_params(my_default_retry_params)
-
-
-
-    
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write("hi there")
-        
         
 app = webapp2.WSGIApplication([
     ('/grand/test' , test.MainHandler),
