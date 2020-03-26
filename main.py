@@ -20,7 +20,7 @@ import sys
 sys.path.insert(0,'lib')
 
 import logging
-#import cloudstorage as gcs
+import cloudstorage as gcs
 import webapp2
 import re
 from google.appengine.api import urlfetch
@@ -38,8 +38,27 @@ import test
 class MainHandler(webapp2.RequestHandler):
     def get(self):
 
+        #setup check
+        try:
+            bucket_name = grand.config['www_bucket']
+        except KeyError:
+            return self.redirect('/grand/setup')
+
+
+        decodedPath = urllib.unquote(self.request.path)
+
+        
+        # split out the image thumbnail command
+        matches = re.match( '^(?P<part1>.*?)(?P<part2>=.*?)?$' , decodedPath )
+        path = [
+            matches.group('part1'), #classic url
+            matches.group('part2')  #image resize command, like s=256-c
+        ]
+        
         filename = '/' + bucket_name + path[0]
 
+        
+        
         # fix for indices.
         if path[0][-1] == '/':
             filename += 'index.html'
