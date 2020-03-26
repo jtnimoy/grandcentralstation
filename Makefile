@@ -2,6 +2,8 @@ SERVERNAME = cdn.jtn.im
 APPENGINE = ../google_appengine
 LOCAL_PORT = 8080
 
+install_libs:
+	pip install -t lib -r requirements.txt 
 
 local_server:
 	dev_appserver.py .

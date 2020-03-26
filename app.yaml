@@ -1,5 +1,4 @@
-runtime: python27
-threadsafe: yes
+runtime: python37
 
 handlers:
 - url: /favicon\.ico
@@ -7,10 +6,6 @@ handlers:
   upload: favicon\.ico
 
 
-- url: .*
-  script: main.app
-
-libraries:
-- name: webapp2
-  version: "2.5.2"
+- url: /.*
+  script: auto
 
