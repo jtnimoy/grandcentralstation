@@ -1,1 +1,2 @@
 cloudstorage
+cloudstorage[local]

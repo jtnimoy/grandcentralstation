@@ -7,7 +7,7 @@ local_server:
 	dev_appserver.py .
 
 deploy:
-	gcloud app deploy app.yaml index.yaml
+	gcloud app deploy
 
 test_remote:
 	curl http://$(SERVERNAME)/grand/test
