@@ -5,7 +5,7 @@ LOCAL_PORT = 8080
 install_libs:
 	pip install -t lib -r requirements.txt 
 
-local_server:
+run_local_python2:
 	dev_appserver.py .
 
 deploy:
@@ -14,7 +14,7 @@ deploy:
 test_remote:
 	curl http://$(SERVERNAME)/grand/test
 
-run_local:
+run_local_python3:
 	python main.py
 
 log_remote:

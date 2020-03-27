@@ -1,4 +1,10 @@
 runtime: python37
 
 env_variables:
-  BUCKET_NAME: cdn-jtnim
+  BUCKET_NAME: cdn-jtnim.appspot.com
+  PROJECT_NAME: cdn-jtnim
+  THUMBNAIL_ENABLED: True
+
+handlers:
+- url: /.*
+  script: auto

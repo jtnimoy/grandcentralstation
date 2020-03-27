@@ -1,2 +1,4 @@
-google-cloud-storage
 flask
+google-cloud-storage
+google-cloud-storage[local]
+google-cloud-storage[google]
