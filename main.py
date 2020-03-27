@@ -78,17 +78,17 @@ class MainHandler(webapp2.RequestHandler):
             stat = gcs.stat(filename)
 
             # TODO: saw an html file served as plain. perhaps google's mime interp is unconventional
+            self.response.headers['Cache-Control'] = 'no-cache'
+            self.response.headers.add_header('Access-Control-Allow-Origin' , '*' )
+            self.response.headers.add_header('Vary','Origin')
             self.response.headers['Content-Type'] =  stat.content_type 
             self.response.headers['Content-Length'] =  str(stat.st_size)
-            self.response.headers['Cache-Control'] = 'no-cache'
-            self.response.headers['Access-Control-Allow-Origin'] = '*'
-            self.response.headers['Vary'] = 'Origin'
             
             if( stat.content_type.startswith('image') and grand.config['thumbnail_enabled'] == 'True' ):
                 
                 #use image api instead of serving like text
                 filename = '/gs'+filename
-                img = images.Image(filename=filename)
+                #img = images.Image(filename=filename)
                 blob_key = blobstore.create_gs_key(filename)
 
                 #self.response.headers['Content-Type'] =  'text/plain'
@@ -102,7 +102,7 @@ class MainHandler(webapp2.RequestHandler):
                 # TODO: server proxy cached data from this url rather than redirecting.    
  
                 # this might actually be sufficient since it's doing exactly what it's supposed to.
-                return self.redirect( images.get_serving_url(blob_key) + resizeCommand, self.response ) 
+                return self.redirect( uri = images.get_serving_url(blob_key) + resizeCommand, response = self.response ) 
             
             
                 #result = urlfetch.fetch(
@@ -118,11 +118,14 @@ class MainHandler(webapp2.RequestHandler):
 
             else:
                 self.response.write(gcs_file.read())
+                return self.response
+            
             gcs_file.close()
+
 
         except gcs.NotFoundError:
             return webapp2.abort(404)
-            
+
 
 app = webapp2.WSGIApplication([
     ('/grand/test' , test.MainHandler),
