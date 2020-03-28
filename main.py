@@ -126,8 +126,25 @@ class MainHandler(webapp2.RequestHandler):
         except gcs.NotFoundError:
             return webapp2.abort(404)
 
+class HomeHandler(webapp2.RequestHandler):
+    def get(self):
+        self.response.write("""<!DOCTYPE html>
+    <html>
+	<head>
+	    <title>cdn home page</title>
+	    <meta name="google-site-verification" content="_aT7zb6Uiuu9lrN4Fii93fK4w4OLUj8EgCOOetH6ig4" />
+	</head>
+	<body>
+            hi there, this is a CDN server. This page is a placeholder to host google property owndership metadata.
+            
+	</body>
+    </html>
+    
+""")
 
+        
 app = webapp2.WSGIApplication([
+    ('/' , HomeHandler),
     ('/grand/test' , test.MainHandler),
     ('/.+', MainHandler),
 
