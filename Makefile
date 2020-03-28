@@ -7,7 +7,7 @@ local_server:
 	dev_appserver.py .
 
 deploy:
-	gcloud app deploy
+	rm *.pyc; rm -r __pycache__ ; gcloud app deploy
 
 test_remote:
 	curl http://$(SERVERNAME)/grand/test

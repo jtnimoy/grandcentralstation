@@ -79,8 +79,8 @@ class MainHandler(webapp2.RequestHandler):
 
             # TODO: saw an html file served as plain. perhaps google's mime interp is unconventional
             self.response.headers['Cache-Control'] = 'no-cache'
-            self.response.headers.add_header('Access-Control-Allow-Origin' , '*' )
-            self.response.headers.add_header('Vary','Origin')
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
+            self.response.headers['Vary'] = 'Origin'
             self.response.headers['Content-Type'] =  stat.content_type 
             self.response.headers['Content-Length'] =  str(stat.st_size)
             
@@ -102,7 +102,7 @@ class MainHandler(webapp2.RequestHandler):
                 # TODO: server proxy cached data from this url rather than redirecting.    
  
                 # this might actually be sufficient since it's doing exactly what it's supposed to.
-                return self.redirect( uri = images.get_serving_url(blob_key) + resizeCommand, response = self.response ) 
+                return self.redirect( images.get_serving_url(blob_key) + resizeCommand, self.response) 
             
             
                 #result = urlfetch.fetch(
@@ -142,7 +142,6 @@ class HomeHandler(webapp2.RequestHandler):
     
 """)
 
-        
 app = webapp2.WSGIApplication([
     ('/' , HomeHandler),
     ('/grand/test' , test.MainHandler),

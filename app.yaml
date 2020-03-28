@@ -1,16 +1,15 @@
 runtime: python27
-threadsafe: yes
+threadsafe: no
 
 handlers:
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico
 
-
 - url: .*
   script: main.app
 
 libraries:
 - name: webapp2
-  version: "latest"
+  version: "2.5.2"
 
